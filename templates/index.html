@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EquilibrIA Digital · Evaluación de bienestar digital con IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='index.css') }}">
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="app-header">
+  <div class="header-inner">
+    <div class="brand">
+      <span class="brand-mark">E</span>
+      <span class="brand-name">EquilibrIA <strong>Digital</strong></span>
+    </div>
+    <button class="link-btn" id="headerCta">
+      <span id="headerCtaText">Comenzar evaluación</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+
+<!-- ===================== HOME SCREEN ===================== -->
+<section id="screen-home" class="screen active">
+  <div class="hero">
+    <div class="hero-text">
+      <span class="eyebrow"><span class="eyebrow-dot"></span>Powered by Machine Learning</span>
+      <h1>EquilibrIA <span class="accent-blue">Digital</span></h1>
+      <p class="hero-sub">Conoce cómo la tecnología impacta tu bienestar mediante <strong class="accent-blue">Inteligencia Artificial</strong>.</p>
+      <p class="hero-desc">Responde un breve cuestionario y nuestro modelo de Machine Learning analizará tus hábitos digitales para estimar tu nivel de riesgo y ofrecer recomendaciones personalizadas.</p>
+
+      <div class="hero-stats">
+        <div class="stat"><strong>24</strong><span>preguntas</span></div>
+        <div class="stat"><strong>6</strong><span>factores analizados</span></div>
+        <div class="stat"><strong>100%</strong><span>personalizado</span></div>
+      </div>
+
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" id="startBtn">
+          Comenzar evaluación
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+    
+      </div>
+    </div>
+
+    <div class="hero-visual" aria-hidden="true">
+      <svg viewBox="0 0 420 360" class="network-svg">
+        <g class="network-lines" stroke="#CBD5F5" stroke-width="1.4">
+          <line x1="210" y1="180" x2="115" y2="90"/>
+          <line x1="210" y1="180" x2="305" y2="90"/>
+          <line x1="210" y1="180" x2="70" y2="180"/>
+          <line x1="210" y1="180" x2="350" y2="180"/>
+          <line x1="210" y1="180" x2="130" y2="270"/>
+          <line x1="210" y1="180" x2="290" y2="270"/>
+        </g>
+        <circle cx="210" cy="180" r="34" fill="#2563EB"/>
+        <text x="210" y="185" text-anchor="middle" fill="#fff" font-family="Poppins" font-weight="700" font-size="15">AI</text>
+        <g class="pulse-ring"><circle cx="210" cy="180" r="34" fill="none" stroke="#2563EB" stroke-width="2"/></g>
+
+        <circle cx="115" cy="90" r="9" fill="#2563EB"/>
+        <circle cx="305" cy="90" r="9" fill="#2563EB"/>
+        <circle cx="130" cy="270" r="7" fill="#2563EB"/>
+        <circle cx="290" cy="270" r="7" fill="#14B8A6"/>
+        <circle cx="70" cy="180" r="6" fill="#14B8A6"/>
+        <circle cx="350" cy="180" r="6" fill="#14B8A6"/>
+
+        <rect x="35" y="150" width="26" height="46" rx="7" fill="none" stroke="#93C5FD" stroke-width="2"/>
+        <rect x="358" y="150" width="26" height="46" rx="7" fill="none" stroke="#93C5FD" stroke-width="2"/>
+
+        <polyline points="100,300 120,300 128,280 138,315 148,300 168,300" fill="none" stroke="#14B8A6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="255,300 275,300 283,280 293,315 303,300 323,300" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="features">
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#FCE7F3;">🧠</div>
+      <h3>Análisis con IA</h3>
+      <p>Nuestro modelo de Machine Learning evalúa 24 indicadores de comportamiento digital.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#CCFBF1;">📊</div>
+      <h3>Resultados precisos</h3>
+      <p>Obtén tu nivel de riesgo en 4 categorías con un velocímetro interactivo.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon" style="background:#FEF3C7;">💡</div>
+      <h3>Recomendaciones</h3>
+      <p>Recibe consejos personalizados para mejorar tu equilibrio digital.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== QUIZ SCREEN ===================== -->
+<section id="screen-quiz" class="screen">
+  <div class="quiz-card">
+    <div class="quiz-top">
+      <div class="quiz-icon" id="quizIcon">📱</div>
+      <span class="quiz-step" id="quizStep">PREGUNTA 1</span>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <h2 class="quiz-question" id="quizQuestion">Cargando...</h2>
+
+    <div class="quiz-options" id="quizOptions"></div>
+
+    <div class="quiz-nav">
+      <button class="btn btn-ghost" id="prevBtn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Anterior
+      </button>
+      <button class="btn btn-primary btn-wide" id="nextBtn" disabled>
+        Siguiente
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RESULTS SCREEN ===================== -->
+<section id="screen-results" class="screen">
+  <div class="results-wrap">
+
+    <div class="gauge-card" id="gaugeCard">
+      <span class="gauge-label">TU RESULTADO</span>
+      <div class="gauge-percent" id="gaugePercent">0%</div>
+      <span class="risk-pill" id="riskPill">RIESGO BAJO</span>
+
+      <div class="gauge-svg-wrap">
+        <svg viewBox="0 0 300 170" id="gaugeSvg">
+          <path id="gaugeTrack" d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="#E5E7EB" stroke-width="14" stroke-linecap="round"/>
+          <path id="gaugeArc" d="M 30 150 A 120 120 0 0 1 270 150" fill="none" stroke="#F97316" stroke-width="14" stroke-linecap="round"/>
+          <text x="30" y="168" font-family="Inter" font-size="11" fill="#94A3B8">0</text>
+          <text x="140" y="45" font-family="Inter" font-size="11" fill="#94A3B8">50</text>
+          <text x="255" y="168" font-family="Inter" font-size="11" fill="#94A3B8">100</text>
+          <text x="70" y="90" font-family="Inter" font-size="11" fill="#94A3B8">25</text>
+          <text x="215" y="90" font-family="Inter" font-size="11" fill="#94A3B8">75</text>
+          <g id="needleGroup" transform="rotate(-90 150 150)">
+            <line x1="150" y1="150" x2="150" y2="55" stroke="#0F172A" stroke-width="4" stroke-linecap="round"/>
+          </g>
+          <circle cx="150" cy="150" r="8" fill="#0F172A"/>
+        </svg>
+      </div>
+
+      <p class="gauge-explain" id="gaugeExplain">Analizando tus hábitos digitales...</p>
+    </div>
+
+    <div class="factors-card">
+      <h3>¿Qué factores influyen en tu resultado?</h3>
+      <p class="section-sub">Análisis de los 6 indicadores clave de tu bienestar digital.</p>
+      <div class="factors-grid" id="factorsGrid"></div>
+    </div>
+
+    <div class="simulator-card">
+      <button class="simulator-toggle" id="simToggle">
+        <div>
+          <h3>Simula cómo mejorarían tus hábitos</h3>
+          <p class="section-sub">Modifica tus hábitos para observar cómo cambiaría tu nivel de riesgo.</p>
+        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" id="simChevron"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="simulator-body" id="simBody"></div>
+    </div>
+
+    <div class="recs-card">
+      <h3>Recomendaciones personalizadas</h3>
+      <div class="recs-grid" id="recsGrid"></div>
+    </div>
+
+    <button class="btn btn-outline btn-block" id="restartBtn">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 4v6h6M20 20v-6h-6M4.5 15a8 8 0 0014.9 3M19.5 9A8 8 0 004.6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Realizar una nueva evaluación
+    </button>
+
+    <div class="disclaimer">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8"/><path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <p>Este resultado es una estimación generada mediante un modelo de Machine Learning y <strong>no constituye un diagnóstico médico o psicológico.</strong> Si tienes preocupaciones sobre tu salud mental, consulta a un profesional calificado.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===================== PROCESSING MODAL ===================== -->
+<div class="modal-overlay" id="processingModal">
+  <div class="processing-card">
+    <div class="processing-icon">💬</div>
+    <h3>Analizando tus hábitos digitales…</h3>
+    <p>Nuestro modelo de Inteligencia Artificial está procesando tu información y calculando tu nivel de riesgo.</p>
+
+    <div class="processing-bar-row">
+      <span>Procesando</span>
+      <span id="processingPct">0%</span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill gradient" id="processingFill"></div>
+    </div>
+
+    <ul class="processing-checklist" id="processingChecklist">
+      <li data-i="0">Analizando patrones de uso digital</li>
+      <li data-i="1">Calculando indicadores de bienestar</li>
+      <li data-i="2">Evaluando hábitos recreativos</li>
+      <li data-i="3">Analizando interrupciones digitales</li>
+      <li data-i="4">Procesando equilibrio digital</li>
+      <li data-i="5">Generando recomendaciones personalizadas</li>
+      <li data-i="6">Calculando nivel de riesgo</li>
+    </ul>
+
+    <div class="processing-done" id="processingDone">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/><path d="M8 12l3 3 5-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      
+      Evaluación completada correctamente.
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='index.js') }}"></script>
+</body>
+</html>
