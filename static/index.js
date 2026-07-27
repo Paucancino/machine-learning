@@ -1,433 +1,133 @@
-//Preguntas
+/* =========================================================
+   EquilibrIA Digital — lógica de la aplicación
+   Adaptado al nuevo modelo de Machine Learning (variable objetivo: NAT)
+   Variables: age, Gender, Relationship_Status, Occupation_Status,
+   Organization, Use_Social_Media, Social_media_platform,
+   Daily_SocialMedia_Hours, Purposeless_use, SocialMedia_Distraction,
+   Restlessness, Attention_Distraction, Worry_Level,
+   Concentration_Difficulty, Social_Comparison, Comparison_Feeling,
+   Validation_Seeking, Depression_Level, Interest_Fluctuation,
+   Sleep_Problems
+   ========================================================= */
+
+// ---------- 1. BANCO DE PREGUNTAS ----------
+// Cada pregunta incluye:
+//   icon    -> emoji mostrado en la tarjeta
+//   q       -> texto amigable de la pregunta
+//   opts    -> opciones mostradas al usuario (A-E)
+//   values  -> valor que se envía al modelo por cada opción (mismo índice que opts)
+//   field   -> nombre exacto de la variable del modelo
+//   factor  -> a qué uno de los 3 factores alimenta (si aplica; las preguntas
+//              demográficas no tienen factor y solo viajan en el payload)
 const QUESTIONS = [
-  
-  {
-  icon:"🎂",
-  q:"¿Cuál es tu rango de edad?",
-  opts:[
-    "15 – 17 años",
-    "18 – 24 años",
-    "25 – 34 años",
-    "35 – 44 años",
-    "45 años o más"
-  ],
-  values:[16,21,29,39,50],
-  field:"Age",
-  factor:null
-},
+  // --- Datos generales (no alimentan factores, solo van al payload del modelo) ---
+  { icon:"🎂", q:"¿Cuál es tu rango de edad?",
+    opts:["Menos de 18","18 - 24","25 - 34","35 - 44","45 o más"],
+    values:[17,21,30,40,50], field:"age" },
 
-{
-  icon:"⚧️",
-  q:"¿Con qué género te identificas?",
-  opts:["Mujer","Hombre","Otro"],
-  values:["Female","Male","Other"],
-  field:"Gender",
-  factor:null
-},
+  { icon:"🧑", q:"¿Con qué género te identificas?",
+    opts:["Femenino","Masculino","No binario","Prefiero no decirlo"],
+    values:["Female","Male","Nonbinary ","unsure "], field:"Gender" },
 
-{
-  icon:"🌎",
-  q:"¿En qué país vives?",
-  opts:[
-    "México",
-    "Estados Unidos",
-    "Brasil",
-    "Reino Unido",
-    "Alemania",
-    "India",
-    "China",
-    "Japón",
-    "Rusia",
-    "Nigeria"
-  ],
+  { icon:"💞", q:"¿Cuál es tu estado civil o situación sentimental actual?",
+    opts:["Soltero/a","En una relación","Casado/a","Divorciado/a o viudo/a"],
+    values:["Single","In a relationship","Married","Divorced"], field:"Relationship_Status" },
 
-  values:[
-    "Mexico",
-    "USA",
-    "Brazil",
-    "UK",
-    "Germany",
-    "India",
-    "China",
-    "Japan",
-    "Russia",
-    "Nigeria"
-  ],
+  { icon:"💼", q:"¿Cuál es tu situación laboral u ocupación actual?",
+    opts:["Estudiante universitario/a","Trabajador/a asalariado/a","Estudiante escolar","Retirado/a"],
+    values:["University Student","Salaried Worker","School Student","Retired"], field:"Occupation_Status" },
 
-  field:"Country",
-  factor:null
-},
+  { icon:"🏢", q:"¿Formas parte de alguna organización o institución (escuela, empresa, asociación)?",
+    opts:["Universidad","Institución privada","Escuela","Empresa","Gobierno","Otra / ninguna"],
+    values:["University","Private","School","Company","Goverment","Unknown"], field:"Organization" },
 
-{
-  icon:"💼",
-  q:"¿Cuál es tu ocupación principal?",
-  opts:[
-    "Estudiante",
-    "Docente",
-    "Ingeniería",
-    "Medicina",
-    "Gerencia",
-    "Ventas",
-    "Arte",
-    "Sin empleo"
-  ],
+  { icon:"📲", q:"¿Utilizas redes sociales de forma habitual?",
+    opts:["Sí","No"],
+    values:[1,0], field:"Use_Social_Media" },
 
-  values:[
-    "Student",
-    "Teacher",
-    "Engineer",
-    "Doctor",
-    "Manager",
-    "Salesperson",
-    "Artist",
-    "Unemployed"
-  ],
+  // --- Uso Compulsivo ---
+  { icon:"⏱️", q:"¿Cuántas horas al día usas redes sociales aproximadamente?",
+    opts:["Menos de 1 hora","1 - 2 horas","2 - 3 horas","3 - 4 horas","4 - 5 horas","Más de 5 horas"],
+    values:[1,2,3,4,5,6], field:"Daily_SocialMedia_Hours", factor:"usoCompulsivo" },
 
-  field:"Occupation",
-  factor:null
-},
+  { icon:"🔄", q:"¿Con qué frecuencia utilizas redes sociales sin un propósito específico, solo por hacerlo?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Purposeless_use", factor:"usoCompulsivo" },
 
-  {
-  icon:"📱",
-  q:"¿Cuántas horas utilizas dispositivos con pantalla diariamente?",
-  opts:[
-    "Menos de 2 horas",
-    "Entre 2 y 4 horas",
-    "Entre 4 y 6 horas",
-    "Entre 6 y 8 horas",
-    "Más de 8 horas"
-  ],
-  values:[1,3,5,7,9],
-  risk:[10,30,55,80,100],
-  field:"Daily_Screen_Time_Hours",
-  factor:"pantalla"
-},
+  { icon:"🎯", q:"¿Qué tan frecuentemente las redes sociales te distraen de tareas importantes?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"SocialMedia_Distraction", factor:"usoCompulsivo" },
 
-  {
-  icon:"🔓",
-  q:"¿Cuántas veces desbloqueas tu teléfono durante un día normal?",
-  opts:[
-    "Menos de 20",
-    "20 – 50",
-    "50 – 100",
-    "100 – 150",
-    "Más de 150"
-  ],
-  values:[10,35,75,125,175],
-  risk:[10,30,55,80,100],
-  field:"Phone_Unlocks_Per_Day",
-  factor:"pantalla"
-},
+  { icon:"😣", q:"¿Te sientes inquieto/a o ansioso/a cuando no puedes revisar tus redes sociales?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Restlessness", factor:"usoCompulsivo" },
 
-  {
-  icon:"🔔",
-  q:"¿Cuántas notificaciones recibes diariamente?",
-  opts:[
-    "Menos de 20",
-    "20 – 50",
-    "50 – 100",
-    "100 – 200",
-    "Más de 200"
-  ],
-  values:[10,35,75,150,250],
-  risk:[10,30,55,80,100],
-  field:"Push_Notifications_Per_Day",
-  factor:"interrupciones"
-},
+  { icon:"🧩", q:"¿Con qué frecuencia te cuesta mantener la atención en tus actividades por culpa de las redes sociales?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Attention_Distraction", factor:"usoCompulsivo" },
 
-  {
-     icon:"📲",
-      q:"¿Cuánto tiempo utilizas redes sociales cada día?",
-    opts:[
-      "Nunca",
-      "Menos de una hora",
-      "1 – 3 horas",
-      "3 – 5 horas",
-      "Más de 5 horas" 
-    ],
-    risk:[0,20,50,75,100], 
-    factor:"recreativo",
-    values:[0,0.5,2,4,6],
-    field:"Social_Media_Usage_Hours",
-   }, 
+  // --- Salud Mental ---
+  { icon:"😟", q:"En general, ¿qué tan preocupado/a te sientes por distintos aspectos de tu vida?",
+    opts:["Muy bajo","Bajo","Moderado","Alto","Muy alto"],
+    values:[1,2,3,4,5], field:"Worry_Level", factor:"saludMental" },
 
-  {
-     icon:"🎮", 
-     q:"¿Cuánto tiempo dedicas a videojuegos?",
-    opts:[
-      "Nunca",
-      "Menos de una hora",
-      "1 – 2 horas",
-      "2 – 4 horas",
-      "Más de 4 horas"
-    ],
-    risk:[0,20,45,70,100], 
-    factor:"recreativo", 
-    values:[0,0.5,1.5,3,5],
-    field:"Gaming_Usage_Hours",
-  },
+  { icon:"🧠", q:"¿Con qué frecuencia tienes dificultad para concentrarte en tus actividades diarias?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Concentration_Difficulty", factor:"saludMental" },
 
-  {
-    icon:"🎬", 
-    q:"¿Cuánto tiempo utilizas plataformas de streaming?",
-    opts:[
-      "Nunca",
-      "Menos de una hora",
-      "1 – 3 horas",
-      "3 – 5 horas",
-      "Más de 5 horas"
-    ],
-    risk:[0,20,50,75,100],
-     factor:"recreativo",
-    values:[0,0.5,2,4,6],
-    field:"Streaming_Usage_Hours",
-  },
+  // --- Comparación Social ---
+  { icon:"🔍", q:"¿Con qué frecuencia te comparas con otras personas al ver contenido en redes sociales?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Social_Comparison", factor:"comparacionSocial" },
 
-  { 
-    icon:"🛒",
-     q:"¿Cuánto tiempo dedicas a compras o navegación en línea?",
-    opts:[
-      "Nunca",
-      "Menos de 30 minutos",
-      "30 – 60 minutos",
-      "1 – 2 horas",
-      "Más de 2 horas"
-    ],
-    risk:[0,15,35,60,90],
-    factor:"recreativo",
-    values:[0,0.25,0.75,1.5,3],
-    field:"Online_Shopping_Hours",
-     },
+  { icon:"💭", q:"Cuando te comparas con otras personas en redes sociales, ¿cómo sueles sentirte después?",
+    opts:["Muy bien","Bien","Neutral","Mal","Muy mal"],
+    values:[1,2,3,4,5], field:"Comparison_Feeling", factor:"comparacionSocial" },
 
-  {
-     icon:"💻",
-    q:"¿Cuántas horas utilizas dispositivos para trabajar o estudiar?",
-    opts:[
-      "Menos de una hora",
-      "1 – 3 horas",
-      "3 – 5 horas",
-      "5 – 8 horas",
-      "Más de 8 horas"
-    ],
-    risk:[10,25,45,70,95],
-    factor:"productivo",
-    values:[0.5,2,4,6.5,9],
-    field:"Work_Related_Usage_Hours", 
-  },
+  { icon:"❤️", q:"¿Qué tan importante es para ti recibir \"me gusta\" o comentarios en lo que publicas?",
+    opts:["Nada importante","Poco importante","Moderadamente importante","Importante","Muy importante"],
+    values:[1,2,3,4,5], field:"Validation_Seeking", factor:"comparacionSocial" },
 
-   {
-  icon:"🧑‍💻",
-  q:"¿Cómo calificarías tus habilidades tecnológicas?",
-  opts:[
-    "Muy bajas",
-    "Básicas",
-    "Intermedias",
-    "Avanzadas",
-    "Expertas"
-  ],
-  values:[1,3,5,7,9],
-  risk:[70,50,30,15,5],
-  field:"Tech_Savviness_Score",
-  factor:"productivo"
-},
+  // --- Salud Mental (continuación) ---
+  { icon:"😔", q:"En las últimas semanas, ¿con qué frecuencia te has sentido triste o sin ánimo?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Depression_Level", factor:"saludMental" },
 
-  { 
-    icon:"🌙", 
-    q:"¿Cuántas horas duermes normalmente?",
-    opts:[
-      "Menos de 5 horas",
-      "5 – 6 horas",
-      "6 – 7 horas",
-      "7 – 8 horas",
-      "Más de 8 horas"
-    ],
-    risk:[90,55,20,10,35], 
-    factor:"saludMental",
-    values:[4.5,5.5,6.5,7.5,8.5],
-    field:"Sleep_Hours", 
-  },
+  { icon:"🌗", q:"¿Con qué frecuencia sientes que pierdes interés en actividades que antes disfrutabas?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Interest_Fluctuation", factor:"saludMental" },
 
-  { 
-    icon:"🏃",
-     q:"¿Cuánto ejercicio realizas diariamente?",
-    opts:[
-      "Nada",
-      "Menos de 30 minutos",
-      "30 – 60 minutos",
-      "1 – 2 horas",
-      "Más de 2 horas"
-    ],
-    risk:[85,60,30,15,10],
-    factor:"saludMental",
-    values:[0,0.25,0.75,1.5,2.5],
-    field:"Physical_Activity_Hours", 
-  },
-
-  { 
-    icon:"😔",
-     q:"Durante las últimas semanas, ¿con qué frecuencia te has sentido desanimado?",
-    opts:[
-      "Nunca",
-      "Rara vez",
-      "Algunas veces",
-      "Frecuentemente",
-      "Casi siempre"
-    ],
-    risk:[0,25,50,75,100],
-     factor:"saludMental", 
-    values:[0,2.5,5,7.5,10],
-    field:"Depression_Score",
-   },
-
-  { 
-    icon:"😟",
-     q:"¿Con qué frecuencia has sentido ansiedad?",
-    opts:[
-      "Nunca",
-      "Rara vez",
-      "Algunas veces",
-      "Frecuentemente",
-      "Casi siempre"
-    ],
-    risk:[0,25,50,75,100], 
-    factor:"saludMental", 
-    values:[0,2.5,5,7.5,10],
-    field:"Anxiety_Score", 
-  },
-  
- { 
-  icon:"😣",
-  q:"¿Cómo describirías tu nivel de estrés?",
-  opts:[
-    "Muy bajo",
-    "Bajo",
-    "Moderado",
-    "Alto",
-    "Muy alto"
-  ],
-  values:[0,2.5,5,7.5,10],
-  risk:[0,25,50,75,100],
-  field:"Stress_Level",
-  factor:"saludMental"
-},
-
-{
-  icon:"👀",
-  q:"¿Con qué frecuencia revisas tu teléfono sin recibir una notificación?",
-  opts:[
-    "Nunca",
-    "Rara vez",
-    "Algunas veces",
-    "Frecuentemente",
-    "Siempre"
-  ],
-  risk:[0,25,50,75,100],
-  field:null,
-  factor:"interrupciones"
-},
-
-{ 
-  icon:"⏰",
-  q:"¿Sientes la necesidad de revisar el teléfono apenas despiertas?",
-  opts:[
-    "Nunca",
-    "Rara vez",
-    "Algunas veces",
-    "Frecuentemente",
-    "Siempre"
-  ],
-  risk:[0,25,50,75,100],
-  field:null,
-  factor:"interrupciones"
-},
-
- { 
-  icon:"🛌",
-  q:"¿Utilizas dispositivos electrónicos antes de dormir?",
-  opts:[
-    "Nunca",
-    "Menos de 30 minutos",
-    "30 – 60 minutos",
-    "1 – 2 horas",
-    "Más de 2 horas"
-  ],
-  risk:[0,20,45,70,100],
-  field:null,
-  factor:"equilibrio"
-},
-
-  { 
-  icon:"✋",
-  q:"¿Te resulta difícil dejar de utilizar el teléfono cuando comienzas?",
-  opts:[
-    "Nunca",
-    "Rara vez",
-    "Algunas veces",
-    "Frecuentemente",
-    "Siempre"
-  ],
-  risk:[0,25,50,75,100],
-  field:null,
-  factor:"equilibrio"
-},
-
- { 
-  icon:"🔕",
-  q:"¿Con qué frecuencia las notificaciones interrumpen tus actividades?",
-  opts:[
-    "Nunca",
-    "Rara vez",
-    "Algunas veces",
-    "Frecuentemente",
-    "Siempre"
-  ],
-  risk:[0,25,50,75,100],
-  field:null,
-  factor:"interrupciones"
-},
-
- { 
-  icon:"⚖️",
-  q:"En general, ¿cómo consideras el equilibrio entre tu vida digital y tu vida personal?",
-  opts:[
-    "Muy bueno",
-    "Bueno",
-    "Regular",
-    "Malo",
-    "Muy malo"
-  ],
-  risk:[0,25,50,75,100],
-  field:null,
-  factor:"equilibrio"
-},
+  { icon:"🌙", q:"¿Con qué frecuencia tienes problemas para dormir o descansar bien?",
+    opts:["Nunca","Rara vez","Algunas veces","Frecuentemente","Siempre"],
+    values:[1,2,3,4,5], field:"Sleep_Problems", factor:"saludMental" },
 ];
 
-// ---------- 2. FACTORES ----------
+// ---------- 2. FACTORES (los 3 nuevos) ----------
 const FACTORS = [
-  { key:"saludMental",    name:"Salud mental",            icon:"🧠" },
-  { key:"pantalla",       name:"Tiempo frente a pantalla", icon:"📱" },
-  { key:"recreativo",     name:"Uso recreativo",          icon:"🎮" },
-  { key:"productivo",     name:"Uso productivo",          icon:"💻" },
-  { key:"equilibrio",     name:"Equilibrio digital",      icon:"⚖️" },
-  { key:"interrupciones", name:"Interrupciones digitales", icon:"🔔" },
+  { key:"saludMental",       name:"Salud Mental",        icon:"🧠" },
+  { key:"usoCompulsivo",     name:"Uso Compulsivo",      icon:"🔄" },
+  { key:"comparacionSocial", name:"Comparación Social",  icon:"🔍" },
 ];
+
+// número de preguntas que alimentan cada factor (para promedios ponderados)
+const FACTOR_WEIGHTS = { saludMental:5, usoCompulsivo:5, comparacionSocial:3 };
 
 const RECOMMENDATIONS = [
-  { icon:"😴", title:"Mejora tu descanso", text:"Intenta dormir entre 7 y 8 horas cada noche. El buen descanso reduce el estrés y mejora tu rendimiento cognitivo." },
-  { icon:"📵", title:"Reduce el tiempo de pantalla", text:"Establece límites diarios de uso en tus apps más consumidas y crea zonas libres de dispositivo." },
-  { icon:"🔔", title:"Gestiona tus notificaciones", text:"Silencia aplicaciones no esenciales y define horarios específicos para revisar mensajes. Recupera el control de tu atención." },
-  { icon:"🏃", title:"Incrementa la actividad física", text:"Realiza al menos 30 minutos de ejercicio diario. El movimiento reduce el estrés, mejora el estado de ánimo y contrarresta el sedentarismo digital." },
-  { icon:"🧘", title:"Realiza pausas digitales", text:"Dedica momentos del día a desconectarte completamente. Comienza con 20-30 minutos sin dispositivos y ve aumentando progresivamente." },
-  { icon:"⚖️", title:"Equilibra ocio y productividad", text:"Diversifica tus actividades fuera de la pantalla: lectura, naturaleza, socialización presencial. Un buen balance digital transforma tu calidad de vida." },
+  { icon:"😴", title:"Cuida tu descanso", text:"Prioriza dormir bien y desconéctate de las pantallas antes de dormir. El descanso influye directamente en tu salud mental." },
+  { icon:"🔄", title:"Reduce el uso sin propósito", text:"Antes de abrir una app, pregúntate para qué la vas a usar. Ese simple hábito reduce el uso compulsivo." },
+  { icon:"🔔", title:"Define límites de tiempo", text:"Configura recordatorios o límites de uso diario en las redes sociales que más utilizas." },
+  { icon:"🧘", title:"Practica pausas conscientes", text:"Cuando sientas la necesidad de revisar el teléfono sin motivo, haz una pausa de unos minutos antes de hacerlo." },
+  { icon:"💬", title:"Modera la comparación social", text:"Recuerda que las redes muestran una versión editada de la vida de los demás. Silencia las cuentas que te generen comparación." },
+  { icon:"🌱", title:"Cuida tu bienestar emocional", text:"Si notas tristeza, ansiedad o pérdida de interés de forma constante, considera hablar con un profesional de salud mental." },
 ];
 
 // ---------- 3. ESTADO ----------
 const state = {
   current: 0,
   answers: new Array(QUESTIONS.length).fill(null),
-  factorScores: {},
-  simScores: {},
-  prediction: null
+  factorScores: {},   // valores calculados tras el cuestionario (0-100, para UI)
+  simScores: {},       // valores modificables por el simulador
+  natScore: null,       // resultado devuelto por el modelo (/predict) si está disponible
 };
 
 // ---------- 4. NAVEGACIÓN DE PANTALLAS ----------
@@ -463,10 +163,7 @@ document.getElementById("restartBtn").addEventListener("click", startQuiz);
 function startQuiz(){
   state.current = 0;
   state.answers = new Array(QUESTIONS.length).fill(null);
-  state.factorScores = {};
-  state.simScores = {};
-  state.prediction = null;
-
+  state.natScore = null;
   showScreen("quiz");
   renderQuestion();
 }
@@ -490,7 +187,7 @@ function renderQuestion(){
   progressFill.style.width = `${((idx + 1) / QUESTIONS.length) * 100}%`;
 
   quizOptions.innerHTML = "";
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  const letters = ["A","B","C","D","E"];
   data.opts.forEach((opt, i) => {
     const btn = document.createElement("button");
     btn.className = "option-btn" + (state.answers[idx] === i ? " selected" : "");
@@ -545,174 +242,137 @@ const processingPct = document.getElementById("processingPct");
 const processingItems = document.querySelectorAll("#processingChecklist li");
 const processingDone = document.getElementById("processingDone");
 
-async function runProcessing(){
+function runProcessing(){
   processingModal.classList.add("active");
   processingFill.style.width = "0%";
   processingPct.textContent = "0%";
   processingDone.classList.remove("show");
+  processingItems.forEach(li => li.classList.remove("done"));
 
-  processingItems.forEach(li => {
-    li.classList.remove("done");
-  });
-
-  const predictionPromise = requestPrediction();
+  // Disparamos la petición real al modelo en paralelo a la animación
+  const predictionPromise = getPrediction(buildModelPayload());
 
   let pct = 0;
   const totalSteps = processingItems.length;
   const stepEvery = Math.floor(100 / totalSteps);
 
-  const interval = setInterval(async () => {
+  const interval = setInterval(() => {
     pct += 4;
-
-    if(pct > 100){
-      pct = 100;
-    }
-
+    if(pct > 100) pct = 100;
     processingFill.style.width = pct + "%";
     processingPct.textContent = pct + "%";
 
-    const doneCount = Math.min(
-      totalSteps,
-      Math.floor(pct / stepEvery)
-    );
-
+    const doneCount = Math.min(totalSteps, Math.floor(pct / stepEvery));
     processingItems.forEach((li, i) => {
-      if(i < doneCount){
-        li.classList.add("done");
-      }
+      if(i < doneCount) li.classList.add("done");
     });
 
     if(pct >= 100){
       clearInterval(interval);
+      processingItems.forEach(li => li.classList.add("done"));
+      processingDone.classList.add("show");
 
-      try{
-        state.prediction = await predictionPromise;
-
-        processingItems.forEach(li => {
-          li.classList.add("done");
-        });
-
-        processingDone.classList.add("show");
-
+      predictionPromise.then((nat) => {
+        state.natScore = nat; // null si /predict no está disponible
         setTimeout(() => {
           processingModal.classList.remove("active");
           computeResults();
           showScreen("results");
         }, 700);
-
-      }catch(error){
-        processingModal.classList.remove("active");
-
-        console.error(error);
-
-        alert(
-          "No se pudo obtener la predicción. " +
-          "Verifica que app.py esté ejecutándose."
-        );
-      }
+      });
     }
   }, 90);
 }
 
+// ---------- 7. FEATURE ENGINEERING + PAYLOAD PARA EL MODELO ----------
+// Promedia el valor (1-5) de las preguntas asociadas a cada índice.
+function averageOfFields(payload, fields){
+  const vals = fields.map(f => payload[f]).filter(v => typeof v === "number");
+  if(vals.length === 0) return null;
+  const sum = vals.reduce((a,b) => a + b, 0);
+  return Math.round((sum / vals.length) * 100) / 100;
+}
+
+// Arma el objeto exacto que espera el backend / modelo (fetch a /predict)
 function buildModelPayload(){
   const payload = {};
 
-  QUESTIONS.forEach((question, index) => {
-    if(!question.field){
-      return;
-    }
-
-    const selectedOption = state.answers[index];
-
-    if(selectedOption === null){
-      return;
-    }
-
-    payload[question.field] = question.values[selectedOption];
+  QUESTIONS.forEach((q, i) => {
+    const optIdx = state.answers[i];
+    payload[q.field] = q.values[optIdx];
   });
 
   return payload;
 }
 
-async function requestPrediction(){
-  const response = await fetch("/predict", {
-    method:"POST",
-    headers:{
-      "Content-Type":"application/json"
-    },
-    body:JSON.stringify(buildModelPayload())
-  });
+// Llama al endpoint real del modelo. Si no está disponible (por ejemplo en
+// esta vista previa estática sin backend), se recurre a la estimación local
+// basada en los 3 factores para que la experiencia nunca se rompa.
+async function getPrediction(payload){
+  try{
+    const res = await fetch("/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if(!res.ok) throw new Error("Respuesta no válida del servidor");
 
-  const data = await response.json();
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    let nat = data.porcentaje ?? data.NAT ?? data.nat ?? data.prediction ?? data.score;
+    if(typeof nat !== "number" || Number.isNaN(nat)) throw new Error("Porcentaje de riesgo no numérico");
 
-  if(!response.ok){
-    throw new Error(data.error || "No se pudo realizar la predicción");
+    // si el modelo devuelve una probabilidad (0-1), la llevamos a escala 0-100
+    if(nat <= 1) nat = nat * 100;
+    return Math.round(Math.max(0, Math.min(100, nat)));
+  } catch (err){
+    console.warn("No se pudo obtener predicción de /predict, se usa estimación local:", err.message);
+    return null;
   }
-
-  return data;
 }
 
-// ---------- 7. CÁLCULO DEL MODELO ----------
+// ---------- 8. CÁLCULO LOCAL DE FACTORES (para tarjetas, velocímetro base y simulador) ----------
 function computeResults(){
-  const sums = {};
-  const counts = {};
-
-  FACTORS.forEach(f => {
-    sums[f.key] = 0;
-    counts[f.key] = 0;
-  });
+  const sums = {}, counts = {};
+  FACTORS.forEach(f => { sums[f.key] = 0; counts[f.key] = 0; });
 
   QUESTIONS.forEach((q, i) => {
-    if(!q.factor || !q.risk){
-      return;
-    }
-
-    const selectedOption = state.answers[i];
-
-    if(selectedOption === null){
-      return;
-    }
-
-    const riskValue = q.risk[selectedOption];
-
-    sums[q.factor] += riskValue;
+    if(!q.factor) return; // preguntas demográficas no alimentan factores
+    const optIdx = state.answers[i];
+    const value = q.values[optIdx];      // 1-5
+    const risk = (value - 1) * 25;       // 0-100 para visualización
+    sums[q.factor] += risk;
     counts[q.factor] += 1;
   });
 
   FACTORS.forEach(f => {
-    state.factorScores[f.key] =
-      counts[f.key] > 0
-        ? Math.round(sums[f.key] / counts[f.key])
-        : 0;
+    state.factorScores[f.key] = Math.round(sums[f.key] / counts[f.key]);
   });
+  // el simulador arranca en los valores calculados
+  state.simScores = { ...state.factorScores };
 
-  state.simScores = {
-    ...state.factorScores
-  };
-
-  renderResults(state.simScores, state.prediction);
+  renderResults(state.simScores);
 }
 
 function overallFromFactors(scores){
-  // media ponderada por número de preguntas de cada factor (igual al promedio simple original)
-  const weights = { saludMental:5, pantalla:2, recreativo:4, productivo:2, interrupciones:4, equilibrio:3 };
+  // media ponderada por número de preguntas de cada factor
   let sum = 0, total = 0;
   FACTORS.forEach(f => {
-    sum += scores[f.key] * weights[f.key];
-    total += weights[f.key];
+    sum += scores[f.key] * FACTOR_WEIGHTS[f.key];
+    total += FACTOR_WEIGHTS[f.key];
   });
   return Math.round(sum / total);
 }
 
 function riskLevel(pct){
-  if(pct < 30) return { label:"RIESGO BAJO", color:"var(--green)", raw:"#10B981",
-    text:"Tus hábitos digitales muestran un equilibrio saludable. Sigue así y mantén tus buenas prácticas." };
-  if(pct < 55) return { label:"RIESGO MODERADO", color:"var(--yellow)", raw:"#F59E0B",
+  if(pct < 30) return { label:"RIESGO BAJO", raw:"#10B981",
+    text:"Tu relación con las redes sociales muestra un equilibrio saludable. Sigue así y mantén tus buenas prácticas." };
+  if(pct < 55) return { label:"RIESGO MODERADO", raw:"#F59E0B",
     text:"Se observan algunos patrones que conviene vigilar. Pequeños ajustes pueden mejorar tu bienestar digital." };
-  if(pct < 80) return { label:"RIESGO ALTO", color:"var(--orange)", raw:"#F97316",
-    text:"Se detectan patrones de uso que pueden afectar tu bienestar. Es recomendable revisar y ajustar tus hábitos tecnológicos pronto." };
-  return { label:"RIESGO MUY ALTO", color:"var(--red)", raw:"#EF4444",
-    text:"Tus hábitos digitales muestran señales de alerta importantes. Considera aplicar cambios cuanto antes y buscar apoyo si lo necesitas." };
+  if(pct < 80) return { label:"RIESGO ALTO", raw:"#F97316",
+    text:"Se detectan patrones de uso compulsivo y comparación social que pueden afectar tu bienestar. Es recomendable ajustar tus hábitos pronto." };
+  return { label:"RIESGO MUY ALTO", raw:"#EF4444",
+    text:"Tus respuestas muestran señales de alerta importantes en tu relación con las redes sociales. Considera aplicar cambios cuanto antes y buscar apoyo si lo necesitas." };
 }
 
 function factorStatus(score){
@@ -721,7 +381,7 @@ function factorStatus(score){
   return { label:"Alto", color:"#EF4444" };
 }
 
-// ---------- 8. RENDER DE RESULTADOS ----------
+// ---------- 9. RENDER DE RESULTADOS ----------
 const gaugePercent = document.getElementById("gaugePercent");
 const riskPill = document.getElementById("riskPill");
 const gaugeExplain = document.getElementById("gaugeExplain");
@@ -736,17 +396,11 @@ const simBody = document.getElementById("simBody");
 const ARC_LENGTH = Math.PI * 120;
 gaugeArc.style.strokeDasharray = `${ARC_LENGTH} ${ARC_LENGTH}`;
 
-function renderResults(scores, prediction = null){
-  const overall = prediction
-    ? prediction.porcentaje
-    : overallFromFactors(scores);
-
- const risk = riskLevel(overall);
-
-if(prediction){
-    risk.label = prediction.etiqueta;
-    risk.text = prediction.mensaje;
-}
+function renderResults(scores){
+  // si el backend respondió con NAT, usamos ese valor para el velocímetro;
+  // si no, usamos la estimación local calculada a partir de los 3 factores.
+  const overall = state.natScore !== null ? state.natScore : overallFromFactors(scores);
+  const risk = riskLevel(overall);
 
   gaugePercent.textContent = overall + "%";
   gaugePercent.style.color = risk.raw;
@@ -818,7 +472,7 @@ function renderRecommendations(){
   });
 }
 
-// ---------- 9. SIMULADOR INTERACTIVO ----------
+// ---------- 10. SIMULADOR INTERACTIVO ----------
 const simToggle = document.getElementById("simToggle");
 const simChevron = document.getElementById("simChevron");
 
@@ -861,14 +515,16 @@ function renderSimulator(scores){
       const val = Number(e.target.value);
       state.simScores[key] = val;
 
-      // actualizar estado visual de esa tarjeta
+      // al mover un slider, el simulador toma el control del velocímetro
+      // (deja de usar el valor NAT original del backend)
+      state.natScore = null;
+
       const item = e.target.closest(".sim-item");
       const st = factorStatus(val);
       const statusEl = item.querySelector("[data-status]");
       statusEl.style.color = st.color;
       statusEl.innerHTML = `<span class="status-dot" style="background:${st.color}"></span>${st.label}`;
 
-      // recalcular todo el resultado global
       updateGlobalFromSim();
     });
   });
